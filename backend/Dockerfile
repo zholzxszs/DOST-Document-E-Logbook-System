@@ -12,27 +12,20 @@ RUN apt-get update && \
       libssl3 \
       && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies in a separate layer for better caching
-COPY --link package.json package-lock.json ./
-
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --production
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
 # Copy the rest of the application code
-COPY --link . .
+COPY . .
 
-# Remove any .env files if present (defense-in-depth)
-RUN rm -f .env prisma/.env || true
-
-# Create a non-root user and switch to it
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
-USER appuser
+# Generate Prisma client
+RUN npx prisma generate
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Expose the port (default 3000)
+# Expose the port
 EXPOSE 3000
 
 # Entrypoint

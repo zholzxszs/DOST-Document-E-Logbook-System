@@ -89,37 +89,29 @@ function AllDocs() {
 
   // Handle View action
   const handleView = (doc) => {
-    const adminData = localStorage.getItem('admin');
-    let adminDirection = null;
-    
-    if (adminData) {
-      const admin = JSON.parse(adminData);
-      adminDirection = admin.documentdirection; // 'incoming' or 'outgoing'
-    }
-
     setSelectedDocument({
-      ...doc,
-      documentid: doc.id,
-      dtsno: doc.dtsNo,
-      documenttype: doc.documentType,
-      documentdirection: adminDirection || doc.documentDirection, // Use admin's direction or document's direction
-      route: doc.route,
-      remarks: doc.remarks,
-      datereleased: doc.dateReceive,
-      time: doc.time
+        ...doc,
+        documentid: doc.id,
+        dtsno: doc.dtsNo,
+        documenttype: doc.documentType,
+        documentdirection: doc.documentDirection, 
+        route: doc.route,
+        remarks: doc.remarks,
+        datereleased: doc.dateReceive,
+        time: doc.time
     });
     
     setIsViewMode(true);
     setIsEditMode(false);
     
-    // Always use admin's direction to determine which modal to show
-    if (adminDirection === 'incoming') {
-      setShowIncomingModal(true);
-      setShowOutgoingModal(false);
+    // Show modal based on document's direction
+    if (doc.documentDirection === 'incoming') {
+        setShowIncomingModal(true);
+        setShowOutgoingModal(false);
     } else {
-      // Default to outgoing if no admin direction or if outgoing
-      setShowOutgoingModal(true);
-      setShowIncomingModal(false);
+        // Default to outgoing if not incoming
+        setShowOutgoingModal(true);
+        setShowIncomingModal(false);
     }
   };
 

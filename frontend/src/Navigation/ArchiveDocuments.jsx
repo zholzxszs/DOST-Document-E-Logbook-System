@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2'; 
 import '../index.css'
 import { io } from 'socket.io-client';
+import moment from 'moment';
 
 function ArchiveDocuments() {
   const [documents, setDocuments] = useState([]);
@@ -222,87 +223,15 @@ function ArchiveDocuments() {
     return matchesSearch && matchesMonth && matchesYear;
   });
 
+  
   const formatDate = (dateString) => {
     if (!dateString || dateString === '-') return '-';
-  
-    // If already in the correct format, return as-is
-    if (typeof dateString === 'string' && 
-        dateString.match(/^[A-Za-z]+ \d{1,2}, \d{4} at \d{1,2}:\d{2} [AP]M$/)) {
-      return dateString;
-    }
-  
-    // Handle UTC ISO format (2025-07-07T10:30:00.000Z)
-    if (typeof dateString === 'string' && dateString.includes('T') && dateString.endsWith('Z')) {
-      try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '-';
-        
-        const months = [
-          'January', 'February', 'March', 'April', 'May', 'June',
-          'July', 'August', 'September', 'October', 'November', 'December'
-        ];
-        
-        const month = months[date.getUTCMonth()];
-        const day = date.getUTCDate();
-        const year = date.getUTCFullYear();
-        
-        let hours = date.getUTCHours();
-        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
-        
-        return `${month} ${day}, ${year} at ${hours}:${minutes} ${ampm}`;
-      } catch (e) {
-        console.error('Error formatting UTC ISO date:', e);
-        return '-';
-      }
-    }
-  
-    // Handle database timestamp format (YYYY-MM-DD HH:mm:ss)
-    const timestampRegex = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?$/;
-    const timestampMatch = dateString.match(timestampRegex);
     
-    if (timestampMatch) {
-      try {
-        const [, year, month, day, hour = '00', minute = '00'] = timestampMatch;
-        const hourNum = parseInt(hour, 10);
-        const ampm = hourNum >= 12 ? 'PM' : 'AM';
-        const displayHour = hourNum % 12 || 12;
-        const displayMinute = minute.padStart(2, '0');
-        
-        const monthName = [
-          'January', 'February', 'March', 'April', 'May', 'June',
-          'July', 'August', 'September', 'October', 'November', 'December'
-        ][parseInt(month, 10) - 1];
-        
-        return `${monthName} ${parseInt(day, 10)}, ${year} at ${displayHour}:${displayMinute} ${ampm}`;
-      } catch (e) {
-        console.error('Error formatting timestamp date:', e);
-        return '-';
-      }
-    }
-  
-    // Fallback for Date objects or other formats
     try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return '-';
-      
-      const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      
-      const month = months[date.getMonth()];
-      const day = date.getDate();
-      const year = date.getFullYear();
-      let hours = date.getHours();
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      
-      return `${month} ${day}, ${year} at ${hours}:${minutes} ${ampm}`;
+      const date = moment(dateString);
+      return date.isValid() ? date.format('MMMM D, YYYY [at] h:mm A') : '-';
     } catch (e) {
-      console.error('Error formatting fallback date:', e);
+      console.error('Error formatting date:', e);
       return '-';
     }
   };
@@ -440,7 +369,7 @@ function ArchiveDocuments() {
                   
                   {/* Date Released */}
                   <div className="w-[15%] min-w-[150px] px-2 text-gray-500 text-center text-sm py-3">
-                    {formatDate(doc.dateReleased)}
+                    {doc.dateReleased}
                   </div>
                   
                   {/* DTS Number */}

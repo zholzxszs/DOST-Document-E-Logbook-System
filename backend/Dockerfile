@@ -26,7 +26,7 @@ RUN npx prisma generate
 ENV NODE_ENV=production
 
 # Expose the port
-EXPOSE 3000
+EXPOSE 3600
 
 # Entrypoint
 CMD ["npm", "start"]

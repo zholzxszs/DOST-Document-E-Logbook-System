@@ -58,7 +58,7 @@ module.exports = (app, io) => {
       if (!datereleased || !datereleased.match(/^[A-Za-z]+ \d{1,2}, \d{4} at \d{1,2}:\d{2} [AP]M$/)) {
         return res.status(400).json({ error: 'Invalid Date Received format' });
       }
-  
+      const moment = require("moment-timezone");
       const newDoc = await prisma.tbldocuments.create({
         data: {
           dtsno: dtsno.trim().toUpperCase(),
@@ -66,7 +66,7 @@ module.exports = (app, io) => {
           route: route.trim(),
           remarks: remarks?.trim() || null,
           documentdirection: 'outgoing',
-          datesent: new Date(datesent), // Convert to proper Date object
+          datesent: moment.tz(datesent, "YYYY-MM-DD HH:mm:ss", "Asia/Manila").toDate(),
           datereleased: datereleased, // Store as string
           time: null,
           isarchive: false

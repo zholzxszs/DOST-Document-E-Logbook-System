@@ -209,14 +209,13 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
         }
       }
       setFormData({
-        route: editingDoc.route || '', 
         dtsNo: editingDoc.dtsno || '',
         remarks: editingDoc.remarks || '',
         date: formattedDate,
         datereleasedinput: formattedDateSent || ''
       });
       setSelectedDocType(editingDoc.documenttype || '');
-      setSelectedRouteType(editingDoc.routetype || '');
+      setSelectedRouteType(editingDoc.route || '');
     } else {
       const now = new Date();
       const formattedTime = now.toLocaleTimeString('en-US', {
@@ -226,7 +225,6 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
       }).replace(/^(\d+:\d{2})/, '$1');
       
       setFormData({ 
-        route: '', 
         dtsNo: '', 
         remarks: '', 
         date: now.toISOString().split('T')[0],

@@ -131,7 +131,6 @@ function Dashboard() {
       return (
         isNotArchived(doc) &&
         doc.documentdirection === 'outgoing' &&
-        (doc.route === 'ORD' || doc.route === 'Accounting_Unit') &&
         receivedToday
       );
     }).length;
@@ -168,7 +167,6 @@ function Dashboard() {
       return (
         isNotArchived(doc) && 
         doc.documentdirection === 'incoming' &&
-        doc.route !== 'ORD' && doc.route !== 'Accounting_Unit' &&
         docDate.getMonth() === months.indexOf(selectedMonth) &&
         docDate.getFullYear() === selectedYear
       );
@@ -245,8 +243,7 @@ function Dashboard() {
       const days = Number(doc.calcnetworkdays);
       return (
         isNotArchived(doc) &&
-        doc.documentdirection === 'outgoing' && 
-        (doc.route === 'ORD' || doc.route === 'Accounting_Unit') &&
+        doc.documentdirection === 'outgoing' &&
         doc.calcnetworkdays !== null &&
         !isNaN(days) &&
         docDate.getMonth() === months.indexOf(selectedMonth) &&
@@ -301,7 +298,6 @@ function Dashboard() {
       return (
         isNotArchived(doc) &&
         doc.documentdirection === 'outgoing' &&
-        (doc.route === 'ORD' || doc.route === 'Accounting_Unit') &&
         receivedToday
       );
     });
@@ -344,7 +340,6 @@ function Dashboard() {
       return (
         isNotArchived(doc) && 
         doc.documentdirection === 'incoming' &&
-        doc.route !== 'ORD' && doc.route !== 'Accounting_Unit' &&
         docDate.getMonth() === months.indexOf(selectedMonth) &&
         docDate.getFullYear() === selectedYear
       );
@@ -367,7 +362,6 @@ function Dashboard() {
       return (
         isNotArchived(doc) &&
         doc.documentdirection === 'outgoing' && 
-        (doc.route === 'ORD' || doc.route === 'Accounting_Unit') &&
         doc.calcnetworkdays !== null &&
         docDate.getMonth() === months.indexOf(selectedMonth) &&
         docDate.getFullYear() === selectedYear

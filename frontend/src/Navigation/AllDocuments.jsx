@@ -351,13 +351,6 @@ function AllDocs() {
     }
   };
 
-  const getRouteStyle = (route) => {
-    switch (route) {
-      case 'For Compliance': return 'text-[#DC3545]';
-      default: return 'text-black';
-    }
-  };
-
   // Excel Export Function
   const handleExportToExcel = async () => {
     // Only filter by selectedMonth and selectedYear for export
@@ -818,10 +811,8 @@ function AllDocs() {
                       {doc.dateReceive || '-'}
                   </div>
                   {/* Route */}
-                  <div className="w-[14%] min-w-[120px] px-2 text-center">
-                    <span className={`inline-block px-4 py-2 text-sm ${getRouteStyle(doc.route?.replace('_', ' ') || '-')}`}>
-                      {doc.route?.replace('_', ' ') || '-'}
-                    </span>
+                  <div className="w-[14%] min-w-[120px] px-2 text-center text-black text-sm">
+                    {doc.route}
                   </div>
                   {/* Remarks */}
                   <div className="w-[10%] min-w-[120px] px-2 text-black text-center text-sm truncate">

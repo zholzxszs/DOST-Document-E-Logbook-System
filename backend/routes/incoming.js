@@ -15,22 +15,21 @@ module.exports = (app, io) => {
     }
   });
 
+  const moment = require("moment-timezone");
   // Add new incoming document
   app.post('/api/incoming', async (req, res) => {
-    const { dtsno, documenttype } = req.body;
+    const { dtsno, documenttype, datesent } = req.body;
     if (!dtsno || !documenttype) {
       return res.status(400).json({ error: 'Required fields missing', required: ['dtsno', 'documenttype'] });
     }
     try {
       const formattedDtsNo = dtsno.trim().toUpperCase();
-      const now = new Date();
-    const manilaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
       const newRecord = await prisma.tbldocuments.create({
         data: {
           dtsno: formattedDtsNo,
           documenttype: documenttype.trim(),
           documentdirection: 'incoming',
-          datesent: manilaTime,
+          datesent: moment.tz(datesent, "YYYY-MM-DD HH:mm:ss", "Asia/Manila").toDate(),
           datereleased: null,
           time: null,
           route: '',

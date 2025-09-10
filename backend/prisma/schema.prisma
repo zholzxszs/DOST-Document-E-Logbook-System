@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -27,12 +27,11 @@ model tbldocumenttype {
 
 model tbldocuments {
   documentid         Int                     @id @default(autoincrement())
-  datesent           DateTime?               @default(now()) @db.Timestamptz
+  datesent           DateTime?               @default(now()) @db.Timestamptz(6)
   dtsno              String                  @db.VarChar(15)
   documenttype       String                  @db.VarChar(30)
   datereleased       String?                 @db.VarChar(50)
   time               time_enum?
-  route              route_enum?
   remarks            String?
   isarchive          Boolean?
   documentdirection  documentdirection_enum?
@@ -41,17 +40,17 @@ model tbldocuments {
   calcnetworkdays    Int?                    @default(0)
   archivedate        String?                 @db.VarChar(50)
   archivedby         String?                 @db.VarChar(50)
+  route              String                  @default("") @db.VarChar(35)
+}
+
+model tblroute {
+  routeid   Int     @id @default(autoincrement())
+  routetype String? @db.VarChar(35)
 }
 
 enum user_type {
   admin
   superadmin
-}
-
-enum route_enum {
-  Accounting_Unit @map("Accounting Unit")
-  ORD
-  For_Compliance  @map("For Compliance")
 }
 
 enum time_enum {

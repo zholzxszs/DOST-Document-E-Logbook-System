@@ -171,9 +171,9 @@ function OverlayIncoming({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
               doc.documenttype === selectedDocType &&
               doc.documentid !== (editingDoc?.documentid || 0) && doc.isarchive === false) // Exclude current document if editing
           );
-          if (exists) {
-            newErrors.dtsNo = 'A document with this DTS No. and document type already exists.';
-          }
+          // if (exists) {
+          //   newErrors.dtsNo = 'A document with this DTS No. and document type already exists.';
+          // }
         }
       } catch (err) {
         console.error('Error checking DTS No:', err);

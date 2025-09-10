@@ -5,6 +5,10 @@ import '../index.css';
 function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSuccess }) {
   const popupRef = useRef(null);
   const [documentTypes, setDocumentTypes] = useState([]);
+  const [routeTypes, setRouteTypes] = useState([]);
+  const [showCustomRouteType, setShowCustomRouteType] = useState(false);
+  const [customRouteType, setCustomRouteType] = useState('');
+  const [selectedRouteType, setSelectedRouteType] = useState('');
   const [showCustomDocType, setShowCustomDocType] = useState(false);
   const [customDocType, setCustomDocType] = useState('');
   const [selectedDocType, setSelectedDocType] = useState('');
@@ -205,13 +209,14 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
         }
       }
       setFormData({
-        route: editingDoc.route || '',
+        route: editingDoc.route || '', 
         dtsNo: editingDoc.dtsno || '',
         remarks: editingDoc.remarks || '',
         date: formattedDate,
         datereleasedinput: formattedDateSent || ''
       });
       setSelectedDocType(editingDoc.documenttype || '');
+      setSelectedRouteType(editingDoc.routetype || '');
     } else {
       const now = new Date();
       const formattedTime = now.toLocaleTimeString('en-US', {
@@ -228,6 +233,7 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
         datereleasedinput: `${now.toLocaleString('default', { month: 'long' })} ${now.getDate()}, ${now.getFullYear()} at ${formattedTime}`
       });
       setSelectedDocType('');
+      setSelectedRouteType('');
     }
   }, [editingDoc]);
 
@@ -242,7 +248,20 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
       }
     };
 
-    if (isOpen) fetchDocumentTypes();
+    const fetchRouteTypes = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/routes`);
+        const data = await response.json();
+        setRouteTypes(data);
+      } catch (error) {
+        console.error('Error fetching route types:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchDocumentTypes();
+      fetchRouteTypes();
+    }
   }, [isOpen]);
 
   const handleInputChange = (e) => {
@@ -266,6 +285,12 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
     const value = e.target.value;
     setSelectedDocType(value);
     setShowCustomDocType(value === 'Others');
+  };
+
+  const handleRouteTypeChange = (e) => {
+    const value = e.target.value;
+    setSelectedRouteType(value);
+    setShowCustomRouteType(value === 'Others');
   };
 
   const handleAddOrRemoveDocType = async (action) => {
@@ -338,13 +363,83 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
     }
   };
 
+  const handleAddOrRemoveRouteType = async (action) => {
+    let newErrors = { ...errors };
+
+    if (!customRouteType.trim()) {
+      newErrors.customRouteType = 'Please enter a route type.';
+      setErrors(newErrors);
+      return;
+    }
+
+    const typeName = customRouteType.trim();
+
+    if (action === 'add') {
+      const exists = routeTypes.some(
+        dt => dt.routetype.toLowerCase() === typeName.toLowerCase()
+      );
+      if (exists) {
+        newErrors.customRouteType = 'Route type already exists.';
+        setErrors(newErrors);
+        return;
+      }
+    }
+
+    if (action === 'remove') {
+      const match = routeTypes.find(dt => dt.routetype.toLowerCase() === typeName.toLowerCase());
+      if (!match) {
+        newErrors.customRouteType = 'Route type not found.';
+        setErrors(newErrors);
+        return;
+      }
+    }
+
+    newErrors.customRouteType = '';
+    setErrors(newErrors);
+
+    try {
+      if (action === 'add') {
+        const response = await fetch(`${API_URL}/api/routes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ routetype: typeName }),
+        });
+
+        if (response.ok) {
+          const newRouteType = await response.json();
+          setRouteTypes([...routeTypes, newRouteType]);
+          setSelectedRouteType(newRouteType.routetype);
+          setCustomRouteType('');
+        } else {
+          throw new Error('Failed to add route type');
+        }
+      } else if (action === 'remove') {
+        const match = routeTypes.find(dt => dt.routetype.toLowerCase() === typeName.toLowerCase());
+        const response = await fetch(`${API_URL}/api/routes/${match.routeid}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setRouteTypes(routeTypes.filter(dt => dt.routeid !== match.routeid));
+          if (selectedRouteType === match.routetype) setSelectedRouteType('');
+          setCustomRouteType('');
+        } else {
+          throw new Error('Failed to delete route type');
+        }
+      }
+    } catch (error) {
+      newErrors.customRouteType = error.message || 'An error occurred.';
+      setErrors(newErrors);
+    }
+  };
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     const newErrors = {};
 
     // Validate required fields
-    if (!formData.route || formData.route === '' || formData.route === '-') {
-        newErrors.route = 'This field is required.';
+    if (!selectedRouteType  || selectedRouteType  === '' || selectedRouteType  === '-') {
+        newErrors.routeType = 'This field is required.';
     }
     if (!formData.dtsNo || formData.dtsNo === '') {
         newErrors.dtsNo = 'This field is required.';
@@ -368,20 +463,20 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
             const response = await fetch(`${API_URL}/api/documents?dtsno=${dtsNoToCheck}`);
             if (response.ok) {
                 const docs = await response.json();
-                const exists = docs.some(doc =>
-                    doc.dtsno?.toUpperCase() === dtsNoToCheck &&
-                    ((doc.route === 'Accounting_Unit' || doc.route === 'ORD') && doc.isarchive === false)
-                );
+                // const exists = docs.some(doc =>
+                //     doc.dtsno?.toUpperCase() === dtsNoToCheck &&
+                //     ((doc.route === 'Accounting_Unit' || doc.route === 'ORD') && doc.isarchive === false)
+                // );
                 const existTwo = docs.some(doc => 
                     doc.dtsno?.toUpperCase() === dtsNoToCheck &&
                     doc.documentdirection === 'incoming' &&
                     doc.isarchive === false
                 );
 
-                if (exists) {
-                    newErrors.dtsNo = 'Cannot add record because this document/DTS No is already processed.';
-                }
-                else if (existTwo) {
+                // if (exists) {
+                //     newErrors.dtsNo = 'Cannot add record because this document/DTS No is already processed.';
+                // }
+                if (existTwo) {
                     newErrors.dtsNo = 'This Document/DTS No is already recorded as an incoming document.';
                 }
             }
@@ -423,7 +518,7 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
         const documentData = {
             dtsno: formData.dtsNo.trim().toUpperCase(),
             documenttype: selectedDocType.trim(),
-            route: formData.route.trim(),
+            route: selectedRouteType.trim(),
             remarks: formData.remarks?.trim() || null,
             documentdirection: 'outgoing'
         };
@@ -649,27 +744,65 @@ function OverlayOutgoing({ isOpen, onClose, editingDoc, viewMode, editMode, onSu
         </h2>
 
         {/* Route */}
-        <div className="mb-6 relative">
+        <div className="relative">
           <label className="absolute -top-2 left-5 bg-white px-1 text-sky-700 text-xs font-bold">Routed To <span className="text-[#F54B4B]">*</span></label>
           <select
-            name="route"
-            value={formData.route}
-            onChange={handleInputChange}
             className={`text-xs w-full h-12 pl-5 pr-4 rounded-full border-2 ${
-              errors.route ? 'border-red-600 text-red-600 ring-red-600' : 'border-sky-700 text-sky-950'
+              errors.routeType ? 'border-red-600 text-red-600 ring-red-600' : 'border-sky-700 text-sky-950'
             } placeholder:text-sky-700/70 focus:outline-none focus:ring-1 ${
-              errors.route ? 'focus:ring-red-600' : 'focus:ring-[#004077]'
+              errors.routeType ? 'focus:ring-red-600' : 'focus:ring-[#004077]'
             }`}
+            value={selectedRouteType}
+            onChange={handleRouteTypeChange}
             disabled={viewMode}
-            required
           >
             <option value="">Select Route</option>
-            <option value="Accounting_Unit">Accounting Unit</option>
-            <option value="ORD">ORD</option>
-            <option value="For_Compliance">For Compliance</option>
+            {routeTypes.map((type) => (
+              <option key={type.routeid} value={type.routetype}>
+                {type.routetype}
+              </option>
+            ))}
+            <option value="Others">Others...</option>
           </select>
-          {errors.route && <p className="text-xs text-red-600 mt-1 px-2">{errors.route}</p>}
+          {errors.routeType && <p className="text-xs text-red-600 mt-1 px-2">{errors.routeType}</p>}
         </div>
+
+        {/* Custom Type */}
+        {showCustomRouteType && (
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Enter document type"
+                className={`text-xs flex-1 h-12 pl-5 pr-4 rounded-full border-2
+                  ${errors.customRouteType ? 'border-red-600 text-red-600 ring-red-600' : 'border-sky-700 text-sky-950'}
+                  focus:outline-none focus:ring-1
+                  ${errors.customRouteType ? 'focus:ring-red-600' : 'focus:ring-[#004077]'}
+                `}
+                value={customRouteType}
+                onChange={(e) => {
+                  setCustomRouteType(e.target.value);
+                  setErrors((prev) => ({ ...prev, customRouteType: '' }));
+                }}
+              />
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white text-sm rounded-2xl px-4 py-2"
+                onClick={() => handleAddOrRemoveRouteType('add')}
+              >
+                Add
+              </button>
+              <button
+                className="bg-red-600 hover:bg-red-700 text-white text-sm rounded-2xl px-4 py-2"
+                onClick={() => handleAddOrRemoveRouteType('remove')}
+              >
+                Remove
+              </button>
+            </div>
+            {errors.customRouteType && (
+              <p className="text-xs text-red-600 mt-1 px-2">{errors.customRouteType}</p>
+            )}
+          </div>
+        )}
 
         {/* DTS No */}
         <div className="relative">

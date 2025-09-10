@@ -25,6 +25,7 @@ require('./routes/documents')(app, io);
 require('./routes/incoming')(app, io);
 require('./routes/documentTypes')(app, io);
 require('./routes/admins')(app, io);
+require('./routes/documentroute')(app, io);
 
 io.on('connection', (socket) => {
     console.log('a user connected');

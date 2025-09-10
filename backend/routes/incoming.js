@@ -33,7 +33,7 @@ module.exports = (app, io) => {
           datesent: manilaTime,
           datereleased: null,
           time: null,
-          route: null,
+          route: '',
           remarks: null,
           networkdaysremarks: null,
           calcnetworkdays: 0,

@@ -85,8 +85,7 @@ function NetworkDays() {
       const data = await response.json();
       const filteredDocuments = data
         .filter(doc => 
-          doc.documentdirection === 'outgoing' && 
-          (doc.route === 'Accounting_Unit' || doc.route === 'ORD')
+          doc.documentdirection === 'outgoing'
         )
         .map(doc => {
           // Calculate business days (excluding weekends)

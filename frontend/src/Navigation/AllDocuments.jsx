@@ -353,10 +353,8 @@ function AllDocs() {
 
   const getRouteStyle = (route) => {
     switch (route) {
-      case 'ORD': return 'text-black';
-      case 'Accounting Unit': return 'text-black';
       case 'For Compliance': return 'text-[#DC3545]';
-      default: return 'text-gray-800';
+      default: return 'text-black';
     }
   };
 
